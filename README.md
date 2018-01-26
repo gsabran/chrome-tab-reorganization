@@ -1,8 +1,10 @@
 Chrome Extension to reorganize tabs accross several windows
 
 Usage
-cmd+1/2/3/4 organize the tabs in 1/2/3/4 windows (moving existing tabs to fill new windows)
-option+1/2/3/4 organize the tabs in 1/2/3/4 windows (creating new tabs in new windows)
+
+`cmd+1/2/3/4` organize the tabs in 1/2/3/4 windows (moving existing tabs to fill new windows)
+
+`option+1/2/3/4` organize the tabs in 1/2/3/4 windows (creating new tabs in new windows)
 
 Installation
 ==
