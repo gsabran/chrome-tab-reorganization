@@ -1,0 +1,52 @@
+{
+  "name": "Tab Manager",
+  "description": "Track time accross webpages",
+  "version": "0.0.1",
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "permissions": ["tabs", "system.display"],
+  "commands": {
+    "group-by-1": {
+      "suggested_key": {
+        "default": "Ctrl+1",
+        "mac": "Command+1"
+      },
+      "description": "Use 1 windows"
+    },
+    "group-by-2": {
+      "suggested_key": {
+        "default": "Ctrl+2",
+        "mac": "Command+2"
+      },
+      "description": "Use 2 windows"
+    },
+    "group-by-3": {
+      "suggested_key": {
+        "default": "Ctrl+3",
+        "mac": "Command+3"
+      },
+      "description": "Use 3 windows"
+    },
+    "group-by-4": {
+      "suggested_key": {
+        "default": "Ctrl+4",
+        "mac": "Command+4"
+      },
+      "description": "Use 4 windows"
+    },
+    "new-group-by-1": {
+      "description": "Use 1 windows. New windows are empty"
+    },
+    "new-group-by-2": {
+      "description": "Use 2 windows. New windows are empty"
+    },
+    "new-group-by-3": {
+      "description": "Use 3 windows. New windows are empty"
+    },
+    "new-group-by-4": {
+      "description": "Use 4 windows. New windows are empty"
+    }
+  },
+  "manifest_version": 2
+}
