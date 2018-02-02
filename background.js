@@ -220,39 +220,47 @@ const getExtraTabs = ({ from: windows, for: target }) => {
 const handle = async (target, useEmptyWindows) => {
   let windows = await getWindows();
   const extraTabs = useEmptyWindows ? [] : getExtraTabs({ from: windows, for: target });
-  while (windows.length < target) {
+  if (windows.length < target) {
     // create new windows
-    const win = await createWindow({ toPosition: windows.length, over: target, focused: true });
-    windows.push(win);
-    const extra = extraTabs.pop();
-    if (extra) {
-      const { tab, previousTabInWindow } = extra;
-      // populate the new window
-      await chromeMoveTabs([tab], { toWindow: win });
-      if (previousTabInWindow) {
-        await chromeUpdateTab(previousTabInWindow, { active: true });
+    const newWindowPositions = [];
+    for (let i=windows.length; i < target; i++) {
+      newWindowPositions.push(i);
+    }
+    const [_, newWindows] = await Promise.all([
+      setWindows(windows, { toPositions: windows.map((win, i) => i), over: target }),
+      createWindows({ toPositions: newWindowPositions, over: target }),
+    ]);
+    for (const win of newWindows) {
+      windows.push(win);
+      const extra = extraTabs.pop();
+      if (extra) {
+        const { tab, previousTabInWindow } = extra;
+        // populate the new window
+        await chromeMoveTabs([tab], { toWindow: win });
+        if (previousTabInWindow) {
+          await chromeUpdateTab(previousTabInWindow, { active: true });
+        }
+        await chromeRemoveTab(win.tabs[0]);
+        await chromeUpdateWindow(win, { focused: true });
       }
-      await chromeRemoveTab(win.tabs[0]);
-      await chromeUpdateWindow(win, { focused: true });
     }
-  }
-  windows = await getWindows();
-  while (windows.length > target) {
-    // remove extra window
-    const win = windows.pop();
-    const tabs = win.tabs.filter(tab => !isTabEmpty(tab));
-    const previousWindow = windows[windows.length - 1];
-    if (tabs.length) {
-      await chromeMoveTabs(tabs, { toWindow: previousWindow }); 
-    }
-    await chromeRemoveWindow(win);
-    await chromeUpdateWindow(previousWindow, { focused: true });
+  } else {
     windows = await getWindows();
+    while (windows.length > target) {
+      // remove extra window
+      const win = windows.pop();
+      const tabs = win.tabs.filter(tab => !isTabEmpty(tab));
+      const previousWindow = windows[windows.length - 1];
+      if (tabs.length) {
+        await chromeMoveTabs(tabs, { toWindow: previousWindow }); 
+      }
+      await chromeRemoveWindow(win);
+      await chromeUpdateWindow(previousWindow, { focused: true });
+      windows = await getWindows();
+    }
+    windows = await getWindows();
+    await setWindows(windows, { toPositions: windows.map((win, i) => i), over: target });
   }
-  windows = await getWindows();
-  await windows.forEach(async (win, idx) => {
-    await setWindow(win, { toPosition: idx, over: target });
-  });
 };
 
 
