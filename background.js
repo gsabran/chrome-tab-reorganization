@@ -1,21 +1,45 @@
 // List of displays. TODO: look with a monitor
 let displays = [];
 // list of tab ids by last recent
-const lastTabIds = [];
+const lastTabs = [];
+let lastTabId = null;
 
 // send the tab id at the end of the history queue
 const pushTab = tabId => {
   removeTab(tabId);
-  lastTabIds.push(tabId);
+  if (lastTabId !== null) {
+    const index = lastTabs.findIndex(tab => tab.id === lastTabId);
+    if (index !== -1) {
+      const id = lastTabId;
+      lastTabs[index].scheduledPause = setTimeout(() => { pauseTab(id); }, 3600 * 1000);
+    }
+  }
+  lastTabs.push({ id: tabId });
+  lastTabId = tabId;
 };
 
 // remove a tab id from the history queue
 const removeTab = tabId => {
-  const index = lastTabIds.indexOf(tabId);
+  const index = lastTabs.findIndex(tab => tab.id === tabId);
   if (index !== -1) {
-    lastTabIds.splice(index, 1);
+    const scheduledPause = lastTabs[index].scheduledPause;
+    if (scheduledPause) {
+      clearTimeout(scheduledPause);
+    }
+    lastTabs.splice(index, 1);
   }
 }
+
+// discard a tab from memory
+const pauseTab = async tabId => new Promise((resolve) => {
+  chrome.tabs.get(tabId, (tab) => {
+    if (tab.active || tab.discarded) {
+      resolve();
+    } else {
+      chrome.tabs.discard(tabId, resolve); 
+    }
+  });
+});
 
 // return the current active tab
 const getActiveTab = (windows) => {
@@ -157,13 +181,13 @@ const getExtraTabs = ({ from: windows, for: target }) => {
   });
 
   const extraTabs = [];
-  for (let i=lastTabIds.length - 1; i>=0; i--) {
-    const tabId = lastTabIds[i];
+  for (let i=lastTabs.length - 1; i>=0; i--) {
+    const tabId = lastTabs[i].id;
     if (counters[tabIdToWin[tabId]] > 1) {
       const windowId = tabIdToWin[tabId];
       let previousTabId;
       for (let j=i-1; j>=0; j--) {
-        const id = lastTabIds[j];
+        const id = lastTabs[j].id;
         if (tabIdToWin[id] === windowId) {
           previousTabId = id;
           break;
@@ -252,6 +276,7 @@ chrome.commands.onCommand.addListener(command => {
 
 // get the initial windows setup
 getWindows().then(windows => {
+  windows.forEach(({ tabs }) => tabs.forEach(tab => pushTab(tab.id)));
   const activeTab = getActiveTab(windows);
   if (activeTab) {
     pushTab(activeTab.id);
