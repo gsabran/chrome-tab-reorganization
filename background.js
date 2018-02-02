@@ -150,6 +150,12 @@ const setWindow = async (win, { toPosition: offset, over: splits }) => {
   });
 };
 
+// move the windows to the posittion offsets over the number splits
+const setWindows = (windows, { toPositions: positions, over: splits }) =>
+  Promise.all(windows.map(async (win, i) => {
+    return setWindow(win, { toPosition: positions[i], over: splits });
+  }));
+
 // create a new window positioned for the given offset and number of splits
 const createWindow = async ({ toPosition: offset, over: splits, focused }) => {
   const display = displays[0];
@@ -164,6 +170,12 @@ const createWindow = async ({ toPosition: offset, over: splits, focused }) => {
     focused: !!focused,
   });
 };
+
+// move the windows to the posittion offsets over the number splits
+const createWindows = ({ toPositions: offsets, over: splits }) =>
+  Promise.all(offsets.map(async offset => {
+    return createWindow({ toPosition: offset, over: splits, focused: true });
+  }));
 
 // return a list of tabs that can be used to populate new windows, chosen by most recently visited
 const getExtraTabs = ({ from: windows, for: target }) => {
