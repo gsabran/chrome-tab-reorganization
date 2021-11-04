@@ -7,14 +7,17 @@ let lastTabId = null;
 // send the tab id at the end of the history queue
 const pushTab = tabId => {
   removeTab(tabId);
-  if (lastTabId !== null) {
-    const index = lastTabs.findIndex(tab => tab.id === lastTabId);
-    if (index !== -1) {
-      const id = lastTabId;
-      lastTabs[index].scheduledPause = setTimeout(() => { pauseTab(id); }, 3600 * 1000);
-    }
-  }
+  // if (lastTabId !== null) {
+  //   const index = lastTabs.findIndex(tab => tab.id === lastTabId);
+  //   if (index !== -1) {
+  //     const id = lastTabId;
+  //     lastTabs[index].scheduledPause = setTimeout(() => { pauseTab(id); }, 3600 * 1000);
+  //   }  
+  // }
   lastTabs.push({ id: tabId });
+  if (lastTabs.length > 10) {
+    lastTabs.shift();
+  }
   lastTabId = tabId;
 };
 
@@ -236,12 +239,12 @@ const handle = async (target, useEmptyWindows) => {
       if (extra) {
         const { tab, previousTabInWindow } = extra;
         // populate the new window
-        await chromeMoveTabs([tab], { toWindow: win });
+        chromeMoveTabs([tab], { toWindow: win });
         if (previousTabInWindow) {
-          await chromeUpdateTab(previousTabInWindow, { active: true });
+          chromeUpdateTab(previousTabInWindow, { active: true });
         }
-        await chromeRemoveTab(win.tabs[0]);
-        await chromeUpdateWindow(win, { focused: true });
+        chromeRemoveTab(win.tabs[0]);
+        chromeUpdateWindow(win, { focused: true });
       }
     }
   } else {
@@ -254,8 +257,8 @@ const handle = async (target, useEmptyWindows) => {
       if (tabs.length) {
         await chromeMoveTabs(tabs, { toWindow: previousWindow }); 
       }
-      await chromeRemoveWindow(win);
       await chromeUpdateWindow(previousWindow, { focused: true });
+      // no need to remove the window. Emptying its tab kills it
       windows = await getWindows();
     }
     windows = await getWindows();
